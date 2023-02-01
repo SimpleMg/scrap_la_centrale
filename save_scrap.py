@@ -2,37 +2,25 @@ import requests as rq
 from bs4 import BeautifulSoup as bs
 
 
-
-class Url:
-    def __init__(self):
-        self.energie = input("entrez l'energie (dies, ess, elec): ")
-        self.marque = input("entrez une marque: ")
-        self.km_max = self._verify_int("entrez km max: ")
-        self.km_min = self._verify_int("entrez km min: ")
-        self.prix_max = self._verify_int("entrez un prix max: ")
-        self.prix_min = self._verify_int("entrez un prix min: ")
-        self.année_max = self._verify_int("entrez anne max: ")
-        self.année_min = self._verify_int("entrez anne mmin: ")
-
-    def _verify_int(self, string_input):
-        choice_user = input(string_input)
-        try:
-            choice_user = int(choice_user)
-            return choice_user
-        except:
-            print("merci de rentrez un entier !\n")
-            return self._verify_int(string_input)
-
-
-    def url(self): 
-        return "https://www.lacentrale.fr/listing?energies={}&makesModelsCommercialNames={}&mileageMax={}&mileageMin=1{}&page=1&priceMax={}&priceMin={}&yearMax={}&yearMin={}".format(self.energie, self.marque.upper(), self.km_max, self.km_min,self.prix_max, self.prix_min, self.année_max, self.année_min)
 class ScrapData:
-    def __init__(self, url):
-        self.url = url 
-    
+    def __init__(self):
+        self.energie = ["dies", "ess", "elec"]
+        self.marque = ["PEUGEOT", "RENAULT", "AUDI",
+                       "VOLKSWAGEN", "BMW", "MERCEDES", "CITROEN", "PORSCHE"]
+        self.km_max = 40000
+        self.km_min = 1
+        self.prix_min = 10000
+        self.prix_max = 60000
+        self.annee_min = 2000
+        self.annee_max = 2023
 
-    def _browse_page(self, n):
-        url_split = self.url.split("&")
+    def _url(self, marque, energie, page):
+        url = "https://www.lacentrale.fr/listing?energies={}&makesModelsCommercialNames={}&mileageMax={}&mileageMin=1{}&page={}&priceMax={}&priceMin={}&yearMax={}&yearMin={}".format(
+            self.energie[energie], self.marque[marque].upper(), self.km_max, self.km_min, page, self.prix_max, self.prix_min, self.annee_max, self.annee_min)
+        return url
+
+    def _browse_page(self, url, n):
+        url_split = url.split("&")
         change = []
         for i in range(len(url_split)):
             if n == 1:
@@ -45,38 +33,44 @@ class ScrapData:
                     change = url_split[i].split("=")
                     change[-1] = str(n)
                     url_split[i] = "=".join(change)
-        self.url = "&".join(url_split)
-        return str(self.url)
-
+        url = "&".join(url_split)
+        return str(url)
 
     def display_voiture(self):
         cpt = 1
-        car_list = [1]
-        while len(car_list) != 0:
-            self.request_url = rq.get(self._browse_page(cpt))  
-            self.response = self.request_url.content 
+        marque = 0
+        energie = 0
+        while marque != len(self.marque):
+            url = self._url(marque, energie, cpt)
+            print("url = ", url)
+            self.request_url = rq.get(self._browse_page(url, cpt))
+            self.response = self.request_url.content
             self.html = bs(self.response, "lxml")
-            h3 = self.html.find_all("h3", {"class": "Text_Text_text Vehiculecard_Vehiculecard_title Text_Text_subtitle2"})
-            div_modele = self.html.find_all("div", {"class": "Text_Text_text Vehiculecard_Vehiculecard_subTitle Text_Text_body2"})
-            div_cara = self.html.find_all("div", {"class": "Text_Text_text Vehiculecard_Vehiculecard_characteristicsItems Text_Text_body2"})
+            h3 = self.html.find_all("h3", {
+                                    "class": "Text_Text_text Vehiculecard_Vehiculecard_title Text_Text_subtitle2"})
+            div_modele = self.html.find_all(
+                "div", {"class": "Text_Text_text Vehiculecard_Vehiculecard_subTitle Text_Text_body2"})
+            div_cara = self.html.find_all("div", {
+                                          "class": "Text_Text_text Vehiculecard_Vehiculecard_characteristicsItems Text_Text_body2"})
             car_list_h3 = [i.string.strip() for i in h3]
             car_list_div_modele = [i.string.strip() for i in div_modele]
             car_list_div_cara = [i.string.strip() for i in div_cara]
             list_tuple_cara = []
-            cpt = 0
-            while cpt != len(car_list_div_cara):
-                list_tuple_cara.append([car_list_div_cara[cpt], car_list_div_cara[cpt+1], car_list_div_cara[cpt+2], car_list_div_cara[cpt+3]])
-                cpt += 4
-            print("l", list_tuple_cara)
-            if len(car_list_h3) > 0:
-                for i in car_list_h3:
-                    for j in car_list_div_modele:
-                        for x in range(len(list_tuple_cara)):
-                            for k in range(len(list_tuple_cara)):
-                                print("marque = {}, modele = {}, annee = {}, km = {}, mode = {}, essence = {}".format(i, j, list_tuple_cara[x][0],list_tuple_cara[x][1],list_tuple_cara[x][2],list_tuple_cara[x][3]))
-
-                pass
-            else:
-                break
+            element = 0
+            while element != len(car_list_div_cara):
+                list_tuple_cara.append([car_list_div_cara[cpt], car_list_div_cara[cpt+1],
+                                       car_list_div_cara[cpt+2], car_list_div_cara[cpt+3]])
+                element += 4
+            iter_car = 0
+            while iter_car != len(car_list_h3):
+                print("marque = {}, modele = {},  {}, {}, {}, {}".format(
+                    car_list_h3[iter_car], car_list_div_modele[iter_car], list_tuple_cara[iter_car][0], list_tuple_cara[iter_car][1], list_tuple_cara[iter_car][2], list_tuple_cara[iter_car][3]))
+                iter_car += 1
             cpt += 1
-        
+            if energie == 2:
+                marque += 1
+                energie = 0
+            else:
+                energie += 1
+            print("marque = ", marque)
+            print("energie = ", energie)
