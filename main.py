@@ -1,5 +1,4 @@
 from scrap import *
 
-url = Url()
-scrap = ScrapData(url.url())
+scrap = ScrapData()
 scrap.display_voiture()
