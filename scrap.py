@@ -69,8 +69,9 @@ class ScrapData:
             cpt += 1
             if energie == 2:
                 marque += 1
+                cpt = 0
                 energie = 0
             else:
-                energie += 1
-            print("marque = ", marque)
-            print("energie = ", energie)
+                if len(car_list_h3) == 0 or cpt == 10:
+                    energie += 1
+                    cpt = 0
