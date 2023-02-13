@@ -1,5 +1,6 @@
 import requests as rq
 from bs4 import BeautifulSoup as bs
+import csv
 
 
 class ScrapData:
@@ -36,6 +37,29 @@ class ScrapData:
         url = "&".join(url_split)
         return str(url)
 
+    def _data_org(self, data:list[str])->list[str]:
+        org_data = {"marque":0, "modele":0, "année":0, "km":0, "mode":0, "energie":0}
+        energie_org_data = ["Diesel", "Essence", "Électrique"]
+        mode = ["Automatique" , "Manuelle"]
+        for i in range(len(data)):
+            if data[i].split()[0] in self.marque:
+                org_data["marque"] = data[i]
+            elif (data[i] not in mode) and (data[i] not in energie_org_data) and ("km" not in data[i].split()):
+                try:
+                    data[i] = int(data[i])
+                    org_data["année"] = data[i]
+                except:
+                    org_data["modele"] = data[i]
+            elif "km" in data[i].split():
+                org_data["km"] = "".join(data[i].split())
+            elif data[i] in energie_org_data:
+                org_data["energie"] = data[i].replace("É", "E")
+            else:
+                org_data["mode"] = data[i]
+        list_org_data = [org_data["marque"],org_data["modele"],org_data["année"],org_data["km"],org_data["mode"],org_data["energie"]]
+        return list_org_data
+
+
     def display_voiture(self):
         cpt = 1
         marque = 0
@@ -63,8 +87,13 @@ class ScrapData:
                 element += 4
             iter_car = 0
             while iter_car != len(car_list_h3):
+                data = [car_list_h3[iter_car], car_list_div_modele[iter_car], list_tuple_cara[iter_car][0], list_tuple_cara[iter_car][1], list_tuple_cara[iter_car][2], list_tuple_cara[iter_car][3]]
+                data = self._data_org(data)
                 print("marque = {}, modele = {},  {}, {}, {}, {}".format(
-                    car_list_h3[iter_car], car_list_div_modele[iter_car], list_tuple_cara[iter_car][0], list_tuple_cara[iter_car][1], list_tuple_cara[iter_car][2], list_tuple_cara[iter_car][3]))
+                    data[0], data[1], data[2], data[3], data[4], data[5]))
+                with open("file.csv", "a") as file_descriptor:
+                    csv_writer = csv.writer(file_descriptor)
+                    csv_writer.writerow(['{}'.format(data[0]), '{}'.format(data[1]), '{}'.format(data[2]), '{}'.format(data[3]) ,'{}'.format(data[4]), '{}'.format(data[5])])
                 iter_car += 1
             cpt += 1
             if energie == 2:
