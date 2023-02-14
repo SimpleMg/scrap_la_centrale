@@ -1,7 +1,9 @@
 import requests as rq
 from bs4 import BeautifulSoup as bs
 import csv
-
+import re
+from pprint import pprint
+import json
 
 class ScrapData:
     def __init__(self):
@@ -59,6 +61,18 @@ class ScrapData:
         list_org_data = [org_data["marque"],org_data["modele"],org_data["année"],org_data["km"],org_data["mode"],org_data["energie"]]
         return list_org_data
 
+    def _recup_element_json(self, element_recup):
+        for script in self.html.find_all("script"):
+            if "window.__PRELOADED_STATE_LISTING__" in script.text:
+                html_data = script.text
+        data = re.search('({.*});', html_data).group(1)
+        data = json.loads(data)
+        modele_liste = []
+        for marque in data["search"]["aggs"]["vehicle.make"]:
+            if marque["key"] == element_recup.upper():
+                for modele in marque["agg"]:
+                    modele_liste.append(modele["key"])
+        return modele_liste
 
     def display_voiture(self):
         cpt = 1
