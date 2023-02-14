@@ -17,9 +17,10 @@ class ScrapData:
         self.annee_min = 2000
         self.annee_max = 2023
 
-    def _url(self, marque, energie, page):
-        url = "https://www.lacentrale.fr/listing?energies={}&makesModelsCommercialNames={}&mileageMax={}&mileageMin=1{}&page={}&priceMax={}&priceMin={}&yearMax={}&yearMin={}".format(
-            self.energie[energie], self.marque[marque].upper(), self.km_max, self.km_min, page, self.prix_max, self.prix_min, self.annee_max, self.annee_min)
+    def _url(self, marque, energie, page, modele):
+        modele_modif = modele
+        url = "https://www.lacentrale.fr/listing?energies={}%{}%{}&makesModelsCommercialNames={}&mileageMax={}&mileageMin=1{}&page={}&priceMax={}&priceMin={}&yearMax={}&yearMin={}".format(
+            self.energie[energie], self.marque[0].upper(), modele, modele_modif, self.km_max, self.km_min, page, self.prix_max, self.prix_min, self.annee_max, self.annee_min)
         return url
 
     def _browse_page(self, url, n):
@@ -62,7 +63,10 @@ class ScrapData:
         return list_org_data
 
     def _recup_element_json(self, element_recup):
-        for script in self.html.find_all("script"):
+        url = "https://www.lacentrale.fr/listing"
+        response = rq.get(url)
+        soup = bs(response.text, "html.parser")
+        for script in soup.find_all("script"):
             if "window.__PRELOADED_STATE_LISTING__" in script.text:
                 html_data = script.text
         data = re.search('({.*});', html_data).group(1)
@@ -79,42 +83,44 @@ class ScrapData:
         marque = 0
         energie = 0
         while marque != len(self.marque):
-            url = self._url(marque, energie, cpt)
-            print("url = ", url)
-            self.request_url = rq.get(self._browse_page(url, cpt))
-            self.response = self.request_url.content
-            self.html = bs(self.response, "lxml")
-            h3 = self.html.find_all("h3", {
-                                    "class": "Text_Text_text Vehiculecard_Vehiculecard_title Text_Text_subtitle2"})
-            div_modele = self.html.find_all(
-                "div", {"class": "Text_Text_text Vehiculecard_Vehiculecard_subTitle Text_Text_body2"})
-            div_cara = self.html.find_all("div", {
-                                          "class": "Text_Text_text Vehiculecard_Vehiculecard_characteristicsItems Text_Text_body2"})
-            car_list_h3 = [i.string.strip() for i in h3]
-            car_list_div_modele = [i.string.strip() for i in div_modele]
-            car_list_div_cara = [i.string.strip() for i in div_cara]
-            list_tuple_cara = []
-            element = 0
-            while element != len(car_list_div_cara):
-                list_tuple_cara.append([car_list_div_cara[cpt], car_list_div_cara[cpt+1],
-                                       car_list_div_cara[cpt+2], car_list_div_cara[cpt+3]])
-                element += 4
-            iter_car = 0
-            while iter_car != len(car_list_h3):
-                data = [car_list_h3[iter_car], car_list_div_modele[iter_car], list_tuple_cara[iter_car][0], list_tuple_cara[iter_car][1], list_tuple_cara[iter_car][2], list_tuple_cara[iter_car][3]]
-                data = self._data_org(data)
-                print("marque = {}, modele = {},  {}, {}, {}, {}".format(
-                    data[0], data[1], data[2], data[3], data[4], data[5]))
-                with open("file.csv", "a") as file_descriptor:
-                    csv_writer = csv.writer(file_descriptor)
-                    csv_writer.writerow(['{}'.format(data[0]), '{}'.format(data[1]), '{}'.format(data[2]), '{}'.format(data[3]) ,'{}'.format(data[4]), '{}'.format(data[5])])
-                iter_car += 1
-            cpt += 1
-            if energie == 2:
-                marque += 1
-                cpt = 0
-                energie = 0
-            else:
-                if len(car_list_h3) == 0 or cpt == 10:
-                    energie += 1
+            modele = self._recup_element_json("FORD")
+            for i in range(len(modele)):
+                url = self._url(marque, energie, cpt, modele[i])
+                print("url = ", url)
+                self.request_url = rq.get(self._browse_page(url, cpt))
+                self.response = self.request_url.content
+                self.html = bs(self.response, "lxml")
+                h3 = self.html.find_all("h3", {
+                                        "class": "Text_Text_text Vehiculecard_Vehiculecard_title Text_Text_subtitle2"})
+                div_modele = self.html.find_all(
+                    "div", {"class": "Text_Text_text Vehiculecard_Vehiculecard_subTitle Text_Text_body2"})
+                div_cara = self.html.find_all("div", {
+                                            "class": "Text_Text_text Vehiculecard_Vehiculecard_characteristicsItems Text_Text_body2"})
+                car_list_h3 = [i.string.strip() for i in h3]
+                car_list_div_modele = [i.string.strip() for i in div_modele]
+                car_list_div_cara = [i.string.strip() for i in div_cara]
+                list_tuple_cara = []
+                element = 0
+                while element != len(car_list_div_cara):
+                    list_tuple_cara.append([car_list_div_cara[cpt], car_list_div_cara[cpt+1],
+                                        car_list_div_cara[cpt+2], car_list_div_cara[cpt+3]])
+                    element += 4
+                iter_car = 0
+                while iter_car != len(car_list_h3):
+                    data = [car_list_h3[iter_car], car_list_div_modele[iter_car], list_tuple_cara[iter_car][0], list_tuple_cara[iter_car][1], list_tuple_cara[iter_car][2], list_tuple_cara[iter_car][3]]
+                    data = self._data_org(data)
+                    print("marque = {}, modele = {},  {}, {}, {}, {}".format(
+                        data[0], data[1], data[2], data[3], data[4], data[5]))
+                    with open("file.csv", "a") as file_descriptor:
+                        csv_writer = csv.writer(file_descriptor)
+                        csv_writer.writerow(['{}'.format(data[0]), '{}'.format(data[1]), '{}'.format(data[2]), '{}'.format(data[3]) ,'{}'.format(data[4]), '{}'.format(data[5])])
+                    iter_car += 1
+                cpt += 1
+                if energie == 2:
+                    marque += 1
                     cpt = 0
+                    energie = 0
+                else:
+                    if len(car_list_h3) == 0 or cpt == 10:
+                        energie += 1
+                        cpt = 0
