@@ -1,4 +1,5 @@
 from scrap import *
 
-scrap = ScrapData()
-scrap.display_voiture()
+if __name__ == "__main__":
+    scrap = ScrapData()
+    scrap.display_voiture()
