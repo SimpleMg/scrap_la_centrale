@@ -97,6 +97,8 @@ class ScrapData:
                         "div", {"class": "Text_Text_text Vehiculecard_Vehiculecard_subTitle Text_Text_body2"})
                     div_cara = self.html.find_all("div", {
                                                 "class": "Text_Text_text Vehiculecard_Vehiculecard_characteristicsItems Text_Text_body2"})
+                    price = self.html.find_all("span", {
+                                                "class": "Text_Text_text Vehiculecard_Vehiculecard_price Text_Text_subtitle2"})
                     car_list_h3 = [i.string.strip() for i in h3]
                     car_list_div_modele = [i.string.strip() for i in div_modele]
                     car_list_div_cara = [i.string.strip() for i in div_cara]
@@ -115,8 +117,8 @@ class ScrapData:
                         data = [car_list_h3[iter_car], car_list_div_modele[iter_car], list_tuple_cara[iter_car][0], list_tuple_cara[iter_car][1], list_tuple_cara[iter_car][2], list_tuple_cara[iter_car][3]]
                         data = self._data_org(data)
                         marque_model = data[0].split()
-                        print("marque = {}, modele = {} ,  motor = {}, annee = {}, km = {}, mode {}, essence = {}".format(
-                           marque_model[0], " ".join(marque_model[1::]), data[1], data[2], data[3], data[4], data[5]))
+                        #print("marque = {}, modele = {} ,  motor = {}, annee = {}, km = {}, mode {}, essence = {}".format(
+                         #  marque_model[0], " ".join(marque_model[1::]), data[1], data[2], data[3], data[4], data[5]))
                         with open("file.csv", "a") as file_descriptor:
                             csv_writer = csv.writer(file_descriptor)
                             csv_writer.writerow(['{}'.format(data[0]), '{}'.format(data[1]), '{}'.format(data[2]), '{}'.format(data[3]) ,'{}'.format(data[4]), '{}'.format(data[5])])
