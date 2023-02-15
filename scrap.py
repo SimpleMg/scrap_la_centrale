@@ -121,7 +121,7 @@ class ScrapData:
                          #  marque_model[0], " ".join(marque_model[1::]), data[1], data[2], data[3], data[4], data[5]))
                         with open("file.csv", "a") as file_descriptor:
                             csv_writer = csv.writer(file_descriptor)
-                            csv_writer.writerow(['{}'.format(data[0]), '{}'.format(data[1]), '{}'.format(data[2]), '{}'.format(data[3]) ,'{}'.format(data[4]), '{}'.format(data[5])])
+                            csv_writer.writerow(['{}'.format(marque_model[0]), '{}'.format(" ".join(marque_model[1::])),'{}'.format(data[1]), '{}'.format(data[2]), '{}'.format(data[3]) ,'{}'.format(data[4]), '{}'.format(data[5])])
                         iter_car += 1
                     cpt += 1
                 cpt = 1
