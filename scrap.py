@@ -54,8 +54,10 @@ class ScrapData:
                 org_data["km"] = "".join(data[i].split())
             elif data[i] in energie_org_data:
                 org_data["energie"] = data[i].replace("É", "E")
-            else:
+            elif data[i] in mode:
                 org_data["mode"] = data[i]
+            else:
+                org_data["energie"] = data[i].replace("É", "E")
         list_org_data = [org_data["marque"],org_data["modele"],org_data["année"],org_data["km"],org_data["mode"],org_data["energie"]]
         return list_org_data
 
@@ -101,15 +103,22 @@ class ScrapData:
                     list_tuple_cara = []
                     element = 0
                     while element != len(car_list_div_cara):
-                        list_tuple_cara.append([car_list_div_cara[0], car_list_div_cara[1],
-                                            car_list_div_cara[2], car_list_div_cara[3], car_list_div_cara[4]])
+                        print("div cara: ", len(car_list_div_cara))
+                        print("element: ", element)
+                        try:
+                            list_tuple_cara.append([car_list_div_cara[0], car_list_div_cara[1],
+                                                car_list_div_cara[2], car_list_div_cara[3], car_list_div_cara[4]])
+                        except:
+                            print("div cara: ", car_list_div_cara)
+                            list_tuple_cara.append([car_list_div_cara[0], car_list_div_cara[1],
+                                                car_list_div_cara[2], car_list_div_cara[3]]) 
                         element += 4
                     iter_car = 0
                     while iter_car != len(car_list_h3):
                         data = [car_list_h3[iter_car], car_list_div_modele[iter_car], list_tuple_cara[iter_car][0], list_tuple_cara[iter_car][1], list_tuple_cara[iter_car][2], list_tuple_cara[iter_car][3]]
                         data = self._data_org(data)
                         print("marque = {}, modele = {} ,  {}, {}, {}, {}".format(
-                            data[0], data[1], data[2], data[3], data[4], data[5]))
+                           data[0], data[1], data[2], data[3], data[4], data[5]))
                         with open("file.csv", "a") as file_descriptor:
                             csv_writer = csv.writer(file_descriptor)
                             csv_writer.writerow(['{}'.format(data[0]), '{}'.format(data[1]), '{}'.format(data[2]), '{}'.format(data[3]) ,'{}'.format(data[4]), '{}'.format(data[5])])
