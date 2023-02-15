@@ -77,16 +77,16 @@ class ScrapData:
 
     def display_voiture(self):
         marque = 0
-        cpt2 = 1
+        cpt = 1
         while marque != len(self.marque):
             modele = self._recup_element_json("PEUGEOT")
             print("modele = ", modele)
             for i in range(len(modele)):
                 car_list_h3 = [1]
                 while len(car_list_h3) != 0:
-                    url = self._url(marque, cpt2, modele[i])
+                    url = self._url(marque, cpt, modele[i])
                     print("url = ", url)
-                    self.request_url = rq.get(self._browse_page(url, cpt2))
+                    self.request_url = rq.get(self._browse_page(url, cpt))
                     self.response = self.request_url.content
                     self.html = bs(self.response, "lxml")
                     h3 = self.html.find_all("h3", {
@@ -114,6 +114,6 @@ class ScrapData:
                             csv_writer = csv.writer(file_descriptor)
                             csv_writer.writerow(['{}'.format(data[0]), '{}'.format(data[1]), '{}'.format(data[2]), '{}'.format(data[3]) ,'{}'.format(data[4]), '{}'.format(data[5])])
                         iter_car += 1
-                    cpt2 += 1
-                cpt2 = 1
+                    cpt += 1
+                cpt = 1
             marque += 1                
