@@ -2,7 +2,6 @@ import requests as rq
 from bs4 import BeautifulSoup as bs
 import csv
 import re
-from pprint import pprint
 import json
 
 class ScrapData:
@@ -77,11 +76,9 @@ class ScrapData:
         return modele_liste
 
     def display_voiture(self):
-        cpt = 1
         marque = 0
-        energie = 0
         cpt2 = 1
-        while marque != 1:
+        while marque != len(self.marque):
             modele = self._recup_element_json("PEUGEOT")
             print("modele = ", modele)
             for i in range(len(modele)):
@@ -118,4 +115,5 @@ class ScrapData:
                             csv_writer.writerow(['{}'.format(data[0]), '{}'.format(data[1]), '{}'.format(data[2]), '{}'.format(data[3]) ,'{}'.format(data[4]), '{}'.format(data[5])])
                         iter_car += 1
                     cpt2 += 1
+                cpt2 = 1
             marque += 1                
