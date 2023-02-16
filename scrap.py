@@ -4,6 +4,7 @@ import csv
 import re
 import json
 
+
 class ScrapData:
     def __init__(self):
         self.energie = ["dies", "ess", "elec"]
@@ -15,7 +16,7 @@ class ScrapData:
         self.annee_min = 2000
         self.annee_max = 2023
 
-    def _url(self, marque ,page, modele):
+    def _url(self, marque, page, modele):
         url = "https://www.lacentrale.fr/listing?makesModelsCommercialNames={}%3A{}&mileageMax={}&mileageMin=1{}&page={}&priceMax={}&priceMin={}&yearMax={}&yearMin={}".format(
             self.marque[marque].upper(), modele, self.km_max, self.km_min, page, self.prix_max, self.prix_min, self.annee_max, self.annee_min)
         return url
@@ -37,13 +38,16 @@ class ScrapData:
         url = "&".join(url_split)
         return str(url)
 
-    def _data_org(self, data:list[str])->list[str]:
-        org_data = {"marque":0, "motor":0, "année":0, "km":0, "mode":0, "energie":0}
+    def _data_org(self, data: list[str]) -> list[str]:
+        org_data = {"marque": 0, "motor": 0, "année": 0,
+                    "km": 0, "mode": 0, "energie": 0, "prix": 0}
         energie_org_data = ["Diesel", "Essence", "Électrique"]
-        mode = ["Automatique" , "Manuelle"]
+        mode = ["Automatique", "Manuelle"]
         for i in range(len(data)):
             if data[i].split()[0] in self.marque:
                 org_data["marque"] = data[i]
+            elif "€" in data[i]:
+                org_data["prix"] = data[i]
             elif (data[i] not in mode) and (data[i] not in energie_org_data) and ("km" not in data[i].split()):
                 try:
                     data[i] = int(data[i])
@@ -57,8 +61,9 @@ class ScrapData:
             elif data[i] in mode:
                 org_data["mode"] = data[i]
             else:
-                org_data["energie"] = data[i].replace("É", "E")
-        list_org_data = [org_data["marque"],org_data["motor"],org_data["année"],org_data["km"],org_data["mode"],org_data["energie"]]
+                org_data["energie"] = "non renseigner"
+        list_org_data = [org_data["marque"], org_data["motor"], org_data["année"],
+                         org_data["km"], org_data["mode"], org_data["energie"], org_data["prix"]]
         return list_org_data
 
     def _recup_element_json(self, element_recup):
@@ -96,33 +101,39 @@ class ScrapData:
                     div_modele = self.html.find_all(
                         "div", {"class": "Text_Text_text Vehiculecard_Vehiculecard_subTitle Text_Text_body2"})
                     div_cara = self.html.find_all("div", {
-                                                "class": "Text_Text_text Vehiculecard_Vehiculecard_characteristicsItems Text_Text_body2"})
+                        "class": "Text_Text_text Vehiculecard_Vehiculecard_characteristicsItems Text_Text_body2"})
                     price = self.html.find_all("span", {
-                                                "class": "Text_Text_text Vehiculecard_Vehiculecard_price Text_Text_subtitle2"})
+                        "class": "Text_Text_text Vehiculecard_Vehiculecard_price Text_Text_subtitle2"})
                     car_list_h3 = [i.string.strip() for i in h3]
-                    car_list_div_modele = [i.string.strip() for i in div_modele]
+                    car_list_div_modele = [i.string.strip()
+                                           for i in div_modele]
                     car_list_div_cara = [i.string.strip() for i in div_cara]
+                    car_prices = [prix.text.replace(
+                        '\xa0€', '').replace(' ', '') for prix in price]
                     list_tuple_cara = []
                     element = 0
                     while element != len(car_list_div_cara):
                         try:
                             list_tuple_cara.append([car_list_div_cara[0], car_list_div_cara[1],
-                                                car_list_div_cara[2], car_list_div_cara[3], car_list_div_cara[4]])
+                                                    car_list_div_cara[2], car_list_div_cara[3], car_list_div_cara[4]])
                         except:
                             list_tuple_cara.append([car_list_div_cara[0], car_list_div_cara[1],
-                                                car_list_div_cara[2], car_list_div_cara[3]]) 
+                                                    car_list_div_cara[2], car_list_div_cara[3]])
                         element += 4
                     iter_car = 0
                     while iter_car != len(car_list_h3):
-                        data = [car_list_h3[iter_car], car_list_div_modele[iter_car], list_tuple_cara[iter_car][0], list_tuple_cara[iter_car][1], list_tuple_cara[iter_car][2], list_tuple_cara[iter_car][3]]
+                        data = [car_list_h3[iter_car], car_list_div_modele[iter_car], list_tuple_cara[iter_car][0],
+                                list_tuple_cara[iter_car][1], list_tuple_cara[iter_car][2], list_tuple_cara[iter_car][3], car_prices[iter_car]]
                         data = self._data_org(data)
                         marque_model = data[0].split()
-                        #print("marque = {}, modele = {} ,  motor = {}, annee = {}, km = {}, mode {}, essence = {}".format(
-                         #  marque_model[0], " ".join(marque_model[1::]), data[1], data[2], data[3], data[4], data[5]))
+                        print("marque = {}, modele = {} ,  motor = {}, annee = {}, km = {}, mode = {}, essence = {}, prix = {}".format(
+                            marque_model[0], " ".join(marque_model[1::]), data[1], data[2], data[3], data[4], data[5], data[6]))
                         with open("file.csv", "a") as file_descriptor:
-                            csv_writer = csv.writer(file_descriptor)
-                            csv_writer.writerow(['{}'.format(marque_model[0]), '{}'.format(" ".join(marque_model[1::])),'{}'.format(data[1]), '{}'.format(data[2]), '{}'.format(data[3]) ,'{}'.format(data[4]), '{}'.format(data[5])])
+                            csv_writer = csv.writer(
+                                file_descriptor, dialect='excel-tab')
+                            csv_writer.writerow(['{};'.format(marque_model[0]), '{};'.format(" ".join(marque_model[1::])), '{};'.format(
+                                data[1]), '{};'.format(data[2]), '{};'.format(data[3]), '{};'.format(data[4]), '{};'.format(data[5]), '{};'.format(data[6])])
                         iter_car += 1
                     cpt += 1
                 cpt = 1
-            marque += 1                
+            marque += 1
