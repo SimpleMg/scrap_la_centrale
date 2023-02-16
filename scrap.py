@@ -8,7 +8,7 @@ import json
 class ScrapData:
     def __init__(self):
         self.energie = ["dies", "ess", "elec"]
-        self.marque = ["PEUGEOT", "TESLA"]
+        self.marque = ["PEUGEOT"]
         self.km_max = 40000
         self.km_min = 1
         self.prix_min = 10000
