@@ -133,9 +133,9 @@ class ScrapData:
                         marque_model = data[0].split()
                        # print("marque = {}, modele = {} ,  motor = {}, annee = {}, km = {}, mode = {}, essence = {}, prix = {}".format(
                        #    marque_model[0], " ".join(marque_model[1::]), data[1], data[2], data[3], data[4], data[5], data[6]))
-                        with open("file.csv", "a") as file_descriptor:
+                        with open("file.csv", "a", newline='\n') as file_descriptor:
                             csv_writer = csv.writer(
-                                file_descriptor, delimiter=";", dialect='excel-tab', quoting=csv.QUOTE_NONE, escapechar="\n")
+                                file_descriptor, delimiter=";", dialect='excel-tab', quoting=csv.QUOTE_NONE)
                             csv_writer.writerow(['{}'.format(marque_model[0]), '{}'.format(" ".join(marque_model[1::])), '{}'.format(
                                 data[1]), '{}'.format(data[2]), '{}'.format(data[3]), '{}'.format(data[4]), '{}'.format(data[5]), '{}'.format(data[6])])
                         iter_car += 1
