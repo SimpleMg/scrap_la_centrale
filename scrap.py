@@ -109,6 +109,7 @@ class ScrapData:
                                            for i in div_modele]
                     car_list_div_cara = [i.text for i in div_cara]
                     car_prices = [prix.text for prix in price]
+                    print("car prices = ", car_prices)
                     list_tuple_cara = []
                     element = 0
                     while element != len(car_list_div_cara):
@@ -124,12 +125,17 @@ class ScrapData:
                         data = [car_list_h3[iter_car], car_list_div_modele[iter_car], list_tuple_cara[iter_car][0],
                                 list_tuple_cara[iter_car][1], list_tuple_cara[iter_car][2], list_tuple_cara[iter_car][3], car_prices[iter_car]]
                         data = self._data_org(data)
+                        data[6] = int(data[6].replace(
+                            "€", "").replace(" ", ""))
+                        data[3] = int(data[3].replace(
+                            "km", ""))
+                        print("data = ", data)
                         marque_model = data[0].split()
-                        print("marque = {}, modele = {} ,  motor = {}, annee = {}, km = {}, mode = {}, essence = {}, prix = {}".format(
-                            marque_model[0], " ".join(marque_model[1::]), data[1], data[2], data[3], data[4], data[5], data[6]))
+                       # print("marque = {}, modele = {} ,  motor = {}, annee = {}, km = {}, mode = {}, essence = {}, prix = {}".format(
+                       #    marque_model[0], " ".join(marque_model[1::]), data[1], data[2], data[3], data[4], data[5], data[6]))
                         with open("file.csv", "a") as file_descriptor:
                             csv_writer = csv.writer(
-                                file_descriptor, delimiter=";", dialect='excel-tab')
+                                file_descriptor, delimiter=";", dialect='excel-tab', quoting=csv.QUOTE_NONE, escapechar="\n")
                             csv_writer.writerow(['{}'.format(marque_model[0]), '{}'.format(" ".join(marque_model[1::])), '{}'.format(
                                 data[1]), '{}'.format(data[2]), '{}'.format(data[3]), '{}'.format(data[4]), '{}'.format(data[5]), '{}'.format(data[6])])
                         iter_car += 1
