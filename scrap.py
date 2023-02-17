@@ -104,12 +104,11 @@ class ScrapData:
                         "class": "Text_Text_text Vehiculecard_Vehiculecard_characteristicsItems Text_Text_body2"})
                     price = self.html.find_all("span", {
                         "class": "Text_Text_text Vehiculecard_Vehiculecard_price Text_Text_subtitle2"})
-                    car_list_h3 = [i.string.strip() for i in h3]
-                    car_list_div_modele = [i.string.strip()
+                    car_list_h3 = [i.text for i in h3]
+                    car_list_div_modele = [i.text
                                            for i in div_modele]
-                    car_list_div_cara = [i.string.strip() for i in div_cara]
-                    car_prices = [prix.text.replace(
-                        '\xa0€', '').replace(' ', '') for prix in price]
+                    car_list_div_cara = [i.text for i in div_cara]
+                    car_prices = [prix.text for prix in price]
                     list_tuple_cara = []
                     element = 0
                     while element != len(car_list_div_cara):
